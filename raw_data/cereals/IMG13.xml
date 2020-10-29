@@ -1,0 +1,38 @@
+<annotation>
+	<folder>Cereals</folder>
+	<filename>IMG13.jpg</filename>
+	<path>D:\Computer vision\Grocery dataset\Cereals\IMG13.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>4032</width>
+		<height>3024</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>cereal</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>527</xmin>
+			<ymin>328</ymin>
+			<xmax>2183</xmax>
+			<ymax>2499</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>cereal</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>2161</xmin>
+			<ymin>434</ymin>
+			<xmax>3732</xmax>
+			<ymax>2424</ymax>
+		</bndbox>
+	</object>
+</annotation>
