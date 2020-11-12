@@ -1,0 +1,26 @@
+<annotation>
+	<folder>Chips</folder>
+	<filename>IMG_0270.JPEG</filename>
+	<path>D:\CSUEB_MS\Fall_2020\CS663_Computer_Vison\Project3\maitree\Chips\IMG_0270.JPEG</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>1536</width>
+		<height>2048</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Chips</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>291</xmin>
+			<ymin>1548</ymin>
+			<xmax>638</xmax>
+			<ymax>2031</ymax>
+		</bndbox>
+	</object>
+</annotation>

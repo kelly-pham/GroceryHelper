@@ -1,0 +1,26 @@
+<annotation>
+	<folder>Cereals</folder>
+	<filename>IMG_0412.JPEG</filename>
+	<path>D:\CSUEB_MS\Fall_2020\CS663_Computer_Vison\Project3\maitree\Cereals\IMG_0412.JPEG</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>1536</width>
+		<height>2048</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Cereal</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>360</xmin>
+			<ymin>1277</ymin>
+			<xmax>611</xmax>
+			<ymax>1438</ymax>
+		</bndbox>
+	</object>
+</annotation>

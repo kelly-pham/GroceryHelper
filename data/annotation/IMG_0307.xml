@@ -1,0 +1,62 @@
+<annotation>
+	<folder>Sodas</folder>
+	<filename>IMG_0307.JPEG</filename>
+	<path>/Users/birajpoudyal/Desktop/biraj/Sodas/IMG_0307.JPEG</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>1536</width>
+		<height>2048</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>7up soda</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>664</xmin>
+			<ymin>1414</ymin>
+			<xmax>1527</xmax>
+			<ymax>1919</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>monster energy drink</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>147</xmin>
+			<ymin>1339</ymin>
+			<xmax>587</xmax>
+			<ymax>1796</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>redbull soda</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>9</xmin>
+			<ymin>616</ymin>
+			<xmax>547</xmax>
+			<ymax>1109</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>redbull soda</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>4</xmin>
+			<ymin>11</ymin>
+			<xmax>537</xmax>
+			<ymax>331</ymax>
+		</bndbox>
+	</object>
+</annotation>
