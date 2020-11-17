@@ -1,7 +1,7 @@
 <annotation>
-	<folder>need to do</folder>
+	<folder>need to check</folder>
 	<filename>IMG_0395.JPEG</filename>
-	<path>C:\Users\kelly\Desktop\need to do\IMG_0395.JPEG</path>
+	<path>C:\Users\kelly\Desktop\need to check\IMG_0395.JPEG</path>
 	<source>
 		<database>Unknown</database>
 	</source>
@@ -12,7 +12,7 @@
 	</size>
 	<segmented>0</segmented>
 	<object>
-		<name>Soda</name>
+		<name>can</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -24,7 +24,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>Soda</name>
+		<name>can</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -36,7 +36,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>Soda</name>
+		<name>can</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -48,7 +48,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>Soda</name>
+		<name>can</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
