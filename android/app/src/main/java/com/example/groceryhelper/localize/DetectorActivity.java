@@ -27,18 +27,26 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+
 import android.media.ImageReader.OnImageAvailableListener;
+import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
 
 
+import androidx.annotation.NonNull;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import com.example.groceryhelper.R;
 import com.example.groceryhelper.localize.customview.OverlayView;
@@ -50,6 +58,23 @@ import com.example.groceryhelper.localize.tflite.Classifier;
 import com.example.groceryhelper.localize.tflite.TFLiteObjectDetectionAPIModel;
 import com.example.groceryhelper.localize.tflite.TFLiteObjectDetectionEfficientDet;
 import com.example.groceryhelper.localize.tracking.MultiBoxTracker;
+
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.services.vision.v1.model.AnnotateImageRequest;
+import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
+import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
+import com.google.api.services.vision.v1.model.EntityAnnotation;
+import com.google.api.services.vision.v1.model.FaceAnnotation;
+import com.google.api.services.vision.v1.model.Feature;
+import com.google.api.services.vision.v1.model.Image;
+
+import com.google.api.services.vision.v1.model.Image;
+import com.google.api.services.vision.v1.model.Feature;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.extensions.android.json.AndroidJsonFactory;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.services.vision.v1.Vision;
+import com.google.api.services.vision.v1.VisionRequestInitializer;
 
 
 /**
@@ -191,7 +216,18 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     //making sure the overlay fragment is same wxh and orientation as the ImageView and its image displayed inside.
     tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
   }
-
+  @NonNull
+  private Image getImageEncodeImage(Bitmap bitmap) {
+    Image base64EncodedImage = new Image();
+    // Convert the bitmap to a JPEG
+    // Just in case it's a format that Android understands but Cloud Vision
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+    byte[] imageBytes = byteArrayOutputStream.toByteArray();
+    // Base64 encode the JPEG
+    base64EncodedImage.encodeContent(imageBytes);
+    return base64EncodedImage;
+  }
 
   /**
    * This method is called every time we will to process the CURRENT frame
@@ -240,6 +276,16 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             final long startTime = SystemClock.uptimeMillis();
             final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);  //performing detection on croppedBitmap
             lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+
+//            Vision.Builder visionBuilder = new Vision.Builder(
+//                    new NetHttpTransport(),
+//                    new AndroidJsonFactory(),
+//                    null);
+//
+//            visionBuilder.setVisionRequestInitializer(
+//                    new VisionRequestInitializer("YOUR_API_KEY"));
+//
+//            Vision vision = visionBuilder.build();
 
 
             cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
@@ -303,6 +349,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                     e.printStackTrace();
                   }
                   //**************************************************
+                  //
 
                 }
 
@@ -318,11 +365,15 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
               }
             }
+          LOGGER.d("Did arrive here");
+
 
             tracker.trackResults(mappedRecognitions, currTimestamp);  //DOES DRAWING:  OverlayView to dispaly the recognition bounding boxes that have been transformed and stored in LL mappedRecogntions
             trackingOverlay.postInvalidate();
 
             computingDetection = false;
+            LOGGER.i("Calling OCR detection");
+            textDetection(croppedBitmap);
 
             runOnUiThread(
                 new Runnable() {
@@ -336,6 +387,96 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
           }
         });
   }
+
+  private void textDetection(final Bitmap bitmap) {
+    LOGGER.i("retrieving result from google cloud: ");
+
+    AsyncTask.execute(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          // Declare Vision Builder
+          Vision.Builder visionBuilder = new Vision.Builder(
+                  new NetHttpTransport(),
+                  new AndroidJsonFactory(),
+                  null)
+                  .setApplicationName("Grocery Helper")
+                  ;
+
+          visionBuilder.setVisionRequestInitializer(
+                  new VisionRequestInitializer("AIzaSyCSVHL6VohzSDjQVLclMT1EB8ZrKDEdcz0"));
+
+          Vision vision = visionBuilder.build();
+
+          List<Feature> featureList = new ArrayList<>();
+          Feature textDetection = new Feature();
+          textDetection.setType("TEXT_DETECTION");
+          textDetection.setMaxResults(2);
+          featureList.add(textDetection);
+
+          // Convert Image
+          Image image = new Image();
+          ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+          bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+          byte[] imageBytes = byteArrayOutputStream.toByteArray();
+          image.encodeContent(imageBytes);
+
+          List<AnnotateImageRequest> imageList = new ArrayList<>();
+          AnnotateImageRequest annotateImageRequest = new AnnotateImageRequest();
+          Image base64EncodedImage = image;
+          annotateImageRequest.setImage(base64EncodedImage);
+          annotateImageRequest.setFeatures(featureList);
+          imageList.add(annotateImageRequest);
+          LOGGER.i("Did coming to process image + feature");
+          BatchAnnotateImagesRequest batchAnnotateImagesRequest =
+                  new BatchAnnotateImagesRequest();
+          batchAnnotateImagesRequest.setRequests(imageList);
+          Vision.Images.Annotate annotateRequest =
+                  vision.images().annotate(batchAnnotateImagesRequest);
+          // Due to a bug: requests to Vision API containing large images fail when GZipped.
+          annotateRequest.setDisableGZipContent(true);
+          LOGGER.i("sending request to cloud API");
+          BatchAnnotateImagesResponse response = annotateRequest.execute();
+
+          StringBuilder message = new StringBuilder("Result from Cloud API: \n\n");
+          message.append("Text:\n");
+          List<EntityAnnotation> texts = response.getResponses().get(0).getTextAnnotations();
+          if(texts != null){
+            for (EntityAnnotation text : texts){
+              message.append(String.format(Locale.US, "%s", text.getDescription()));
+            }
+          }else{
+            message.append("nothing");
+          }
+          runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              LOGGER.d("Result from cloud: " + message);
+              Toast.makeText(getApplicationContext(),
+                      message, Toast.LENGTH_LONG).show();
+            }
+          });
+
+//          runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//              Toast.makeText(getApplicationContext(),
+//                      text.getText(), Toast.LENGTH_LONG).show();
+//            }
+//          });
+
+        } catch(GoogleJsonResponseException e){
+          LOGGER.e("Request Failed" + e.getContent());
+        }
+        catch(IOException e) {
+          LOGGER.d("IO failed", e.getMessage());
+        }
+
+      }
+    });
+  }
+
+
 
   @Override
   protected int getLayoutId() {

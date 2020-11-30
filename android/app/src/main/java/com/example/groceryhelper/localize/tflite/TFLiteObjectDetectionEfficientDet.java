@@ -261,8 +261,9 @@ public class TFLiteObjectDetectionEfficientDet implements Classifier {
             float score = outputScores[0][i];
 
             // log a positive result
-            if( i < 2 && score > .5) {
+            if( i < 10 && score > .5) {
                 Log.d(TAG, "SCORE: " + String.valueOf(outputScores[0][i]));
+                Log.d(TAG,"CLASS: " + String.valueOf(outputClasses[0][i]));
 
             }
 
@@ -272,7 +273,7 @@ public class TFLiteObjectDetectionEfficientDet implements Classifier {
                             outputLocations[0][i][0] * inputSize,
                             outputLocations[0][i][3] * inputSize,
                             outputLocations[0][i][2] * inputSize);
-            Log.d(TAG,"Did work here 1");
+            Log.d(TAG,"Detected");
 
             recognitions.add(new Recognition(
                     "" + i,
@@ -280,7 +281,7 @@ public class TFLiteObjectDetectionEfficientDet implements Classifier {
                     outputScores[0][i],
                     detection));
         }
-        Log.d(TAG,"Did work here 2");
+        Log.d(TAG,"End of recognizeImage");
 
         Trace.endSection(); // "recognizeImage"
         return recognitions;
