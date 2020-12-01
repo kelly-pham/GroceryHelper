@@ -5,12 +5,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity  {
     /**
      * Handle to the Box/Can Acctivity
      */
@@ -21,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public static boolean DIAGNOSTIC_MODE = true;
 
+    TextToSpeech tts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,11 +31,26 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-
-
         // Initialization
         initViewHooks(); // initialize the hooks to view screen
         initButtonListeners();
+
+        tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS){
+                    int result = tts.setLanguage(Locale.US);
+                    if (result == tts.LANG_MISSING_DATA || result == tts.LANG_NOT_SUPPORTED){
+                        Log.e("error","Language is not supported");
+                    }else {
+                        Log.e("success","Language Supported");
+                    }
+                    Log.i("TTS","Initialize Successful");
+                } else{
+                    Toast.makeText(getApplicationContext(),"TTS FAILED", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
 
     }
 
@@ -53,5 +71,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         };
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+    }
+
+
 
 }

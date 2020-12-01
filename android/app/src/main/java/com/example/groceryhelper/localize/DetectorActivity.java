@@ -32,6 +32,7 @@ import android.media.ImageReader.OnImageAvailableListener;
 import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
+import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
@@ -77,7 +78,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.services.vision.v1.Vision;
 import com.google.api.services.vision.v1.VisionRequestInitializer;
 
-import org.w3c.dom.Text;
+import android.os.Bundle;
 
 
 /**
@@ -128,6 +129,26 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   private BorderedText borderedText;
 
   TextToSpeech tts;
+  @Override
+  protected void onCreate(Bundle savedInstanceState){
+    super.onCreate(savedInstanceState);
+  tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+    @Override
+    public void onInit(int status) {
+      if (status == TextToSpeech.SUCCESS){
+        int result = tts.setLanguage(Locale.US);
+        if (result == tts.LANG_MISSING_DATA || result == tts.LANG_NOT_SUPPORTED){
+          Log.e("error","Language is not supported");
+        }else {
+          Log.e("success","Language Supported");
+        }
+        Log.i("TTS","Initialize Successful");
+      } else{
+        Toast.makeText(getApplicationContext(),"TTS FAILED", Toast.LENGTH_LONG).show();
+      }
+    }
+  });
+  }
   /**
    * The PARENT class of this class CameraActivity is responsible for connecting to camera on Device
    * it has a callback method when the camera is ready that will call this method.
@@ -219,18 +240,19 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     //making sure the overlay fragment is same wxh and orientation as the ImageView and its image displayed inside.
     tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
   }
-  @NonNull
-  private Image getImageEncodeImage(Bitmap bitmap) {
-    Image base64EncodedImage = new Image();
-    // Convert the bitmap to a JPEG
-    // Just in case it's a format that Android understands but Cloud Vision
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
-    byte[] imageBytes = byteArrayOutputStream.toByteArray();
-    // Base64 encode the JPEG
-    base64EncodedImage.encodeContent(imageBytes);
-    return base64EncodedImage;
-  }
+  // BITMAP CONVERSION WILL BE DONE IN THE TEXT_DETECTION METHOD
+//  @NonNull
+//  private Image getImageEncodeImage(Bitmap bitmap) {
+//    Image base64EncodedImage = new Image();
+//    // Convert the bitmap to a JPEG
+//    // Just in case it's a format that Android understands but Cloud Vision
+//    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+//    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+//    byte[] imageBytes = byteArrayOutputStream.toByteArray();
+//    // Base64 encode the JPEG
+//    base64EncodedImage.encodeContent(imageBytes);
+//    return base64EncodedImage;
+//  }
 
   /**
    * This method is called every time we will to process the CURRENT frame
@@ -303,6 +325,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             //cycling through all of the recognition detections in my image I am currently processing
             for (final Classifier.Recognition result : results) {  //loop variable is result, represents one detection
               final RectF location = result.getLocation();  //getting as  a rectangle the bounding box of the result detecgiton
+             final String detectClass = result.getTitle();
               if (location != null && result.getConfidence() >= minimumConfidence) { //ONLY display if the result has a confidence > threshold
                 canvas.drawRect(location, paint);  //draw in the canvas the bounding boxes-->
 
@@ -315,7 +338,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                                                             ((int) location.width() ),
                                                           ((int) location.height()));
 
-                textDetection(cloudCroppedBitmap);
+                LOGGER.d("Class is: " +  detectClass);
+                textDetection(cloudCroppedBitmap,detectClass);
                 //==============================================================
                 //COVID: code to store image to CloudStore (if any results have result.getConfidence() > minimumConfidence
                 //  ONLY store one time regardless of number of recognition results.
@@ -391,7 +415,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   }
 
 
-  private void textDetection(final Bitmap bitmap) {
+  private void textDetection(final Bitmap bitmap, final String detectedClass) {
     LOGGER.i("retrieving result from google cloud: ");
 
     AsyncTask.execute(new Runnable() {
@@ -407,7 +431,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                   ;
 
           visionBuilder.setVisionRequestInitializer(
-                  new VisionRequestInitializer("INSERT YOUR API KEY HERE"));
+                  new VisionRequestInitializer("INSERT YOUR API KEY"));
 
           Vision vision = visionBuilder.build();
 
@@ -441,12 +465,13 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
           LOGGER.i("sending request to cloud API");
           BatchAnnotateImagesResponse response = annotateRequest.execute();
 
-          StringBuilder message = new StringBuilder("Result from Cloud API: \n\n");
-          message.append("Text:\n");
+          StringBuilder message = new StringBuilder();
+          message.append(detectedClass);
           List<EntityAnnotation> texts = response.getResponses().get(0).getTextAnnotations();
           if(texts != null){
             for (EntityAnnotation text : texts){
               message.append(String.format(Locale.US, "%s", text.getDescription()));
+              tts.speak(message.toString(),TextToSpeech.QUEUE_FLUSH,null);
             }
           }else{
             message.append("nothing");
@@ -461,7 +486,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
               Toast.makeText(getApplicationContext(),
                       message, Toast.LENGTH_LONG).show();
 
-//              tts.speak(message.toString(),TextToSpeech.QUEUE_FLUSH,null,null);
             }
           });
 
@@ -483,6 +507,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
       }
     });
   }
+
 
 
 
@@ -510,5 +535,14 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   @Override
   protected void setNumThreads(final int numThreads) {
     runInBackground(() -> detector.setNumThreads(numThreads));
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    if (tts != null) {
+      tts.stop();
+      tts.shutdown();
+    }
   }
 }
