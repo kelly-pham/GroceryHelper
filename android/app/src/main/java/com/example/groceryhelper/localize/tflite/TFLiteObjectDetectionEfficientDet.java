@@ -220,7 +220,7 @@ public class TFLiteObjectDetectionEfficientDet implements Classifier {
 
         outputMap.put(1, outputScores);         // [1,N] - Confidence Values
         outputMap.put(2, rawDetectionBoxes);    // [1,M,4] - Non-max-suppressed bounding boxes
-        outputMap.put(3,numDetections);        // [N] - Number of detections
+        outputMap.put(3,numDetections);        // [N] - Number of detectionswhich
         outputMap.put(5, outputLocations);      // [1,N,4] - Bounding Boxes
         outputMap.put(6, outputClasses);        // [1,N] - class index
         outputMap.put(0, rawDetectionScores);   // [1,M,C] - raw detection scores

@@ -31,6 +31,7 @@ import android.graphics.Typeface;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.AsyncTask;
 import android.os.SystemClock;
+import android.speech.tts.TextToSpeech;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
@@ -75,6 +76,8 @@ import com.google.api.client.extensions.android.json.AndroidJsonFactory;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.services.vision.v1.Vision;
 import com.google.api.services.vision.v1.VisionRequestInitializer;
+
+import org.w3c.dom.Text;
 
 
 /**
@@ -124,7 +127,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
   private BorderedText borderedText;
 
-
+  TextToSpeech tts;
   /**
    * The PARENT class of this class CameraActivity is responsible for connecting to camera on Device
    * it has a callback method when the camera is ready that will call this method.
@@ -277,16 +280,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);  //performing detection on croppedBitmap
             lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
-//            Vision.Builder visionBuilder = new Vision.Builder(
-//                    new NetHttpTransport(),
-//                    new AndroidJsonFactory(),
-//                    null);
-//
-//            visionBuilder.setVisionRequestInitializer(
-//                    new VisionRequestInitializer("YOUR_API_KEY"));
-//
-//            Vision vision = visionBuilder.build();
-
 
             cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
             final Canvas canvas = new Canvas(cropCopyBitmap);   //create canvas to draw bounding boxes inside of which will be displayed in OverlayView
@@ -313,7 +306,16 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
               if (location != null && result.getConfidence() >= minimumConfidence) { //ONLY display if the result has a confidence > threshold
                 canvas.drawRect(location, paint);  //draw in the canvas the bounding boxes-->
 
+                // Test Cropped bitmap for Google Cloud Vision
+                // Cropped Bitmap for Cloud Vision
+                LOGGER.d("Location for bounding box : " + location);
+                Bitmap cloudCroppedBitmap = Bitmap.createBitmap(croppedBitmap,
+                                                            ((int) location.left ),
+                                                            ((int) location.top ),
+                                                            ((int) location.width() ),
+                                                          ((int) location.height()));
 
+                textDetection(cloudCroppedBitmap);
                 //==============================================================
                 //COVID: code to store image to CloudStore (if any results have result.getConfidence() > minimumConfidence
                 //  ONLY store one time regardless of number of recognition results.
@@ -372,8 +374,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             trackingOverlay.postInvalidate();
 
             computingDetection = false;
-            LOGGER.i("Calling OCR detection");
-            textDetection(croppedBitmap);
+//            LOGGER.i("Calling OCR detection");
+//            textDetection(croppedBitmap);
 
             runOnUiThread(
                 new Runnable() {
@@ -387,6 +389,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
           }
         });
   }
+
 
   private void textDetection(final Bitmap bitmap) {
     LOGGER.i("retrieving result from google cloud: ");
@@ -404,14 +407,14 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                   ;
 
           visionBuilder.setVisionRequestInitializer(
-                  new VisionRequestInitializer("AIzaSyCSVHL6VohzSDjQVLclMT1EB8ZrKDEdcz0"));
+                  new VisionRequestInitializer("INSERT YOUR API KEY HERE"));
 
           Vision vision = visionBuilder.build();
 
           List<Feature> featureList = new ArrayList<>();
           Feature textDetection = new Feature();
           textDetection.setType("TEXT_DETECTION");
-          textDetection.setMaxResults(2);
+          textDetection.setMaxResults(3);
           featureList.add(textDetection);
 
           // Convert Image
@@ -448,12 +451,17 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
           }else{
             message.append("nothing");
           }
+
+
           runOnUiThread(new Runnable() {
             @Override
             public void run() {
               LOGGER.d("Result from cloud: " + message);
+
               Toast.makeText(getApplicationContext(),
                       message, Toast.LENGTH_LONG).show();
+
+//              tts.speak(message.toString(),TextToSpeech.QUEUE_FLUSH,null,null);
             }
           });
 
