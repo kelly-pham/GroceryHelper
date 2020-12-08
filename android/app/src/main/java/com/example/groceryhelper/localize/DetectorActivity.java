@@ -431,7 +431,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                   ;
 
           visionBuilder.setVisionRequestInitializer(
-                  new VisionRequestInitializer("INSERT YOUR API KEY"));
+                  new VisionRequestInitializer("AIzaSyCSVHL6VohzSDjQVLclMT1EB8ZrKDEdcz0"));
 
           Vision vision = visionBuilder.build();
 
