@@ -1,4 +1,4 @@
-Just a testing...
+
 
 # Grocery Helper
 A prototype of Android application aimed to help vision-impaired people doing shopping in Grocery Store. When launching the app, it will tell users whether the products is a box or can and return the brand name using Text Detection from Google Cloud Vision API.  
